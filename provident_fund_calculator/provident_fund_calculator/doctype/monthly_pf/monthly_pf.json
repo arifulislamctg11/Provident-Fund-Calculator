@@ -1,0 +1,76 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-04-21 14:07:04.206200",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "month",
+  "provident_fund_percent",
+  "employee_share_basic5",
+  "association_contribution100",
+  "total_deposit",
+  "net_amount",
+  "basic_salary"
+ ],
+ "fields": [
+  {
+   "fieldname": "month",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Month",
+   "options": "\nJanuary\nFebruary\nMarch\nApril\nMay\nJune\nJuly\nAugust\nSeptember\nOctober\nNovember\nDecember"
+  },
+  {
+   "fieldname": "provident_fund_percent",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "Provident Fund Percent"
+  },
+  {
+   "fieldname": "employee_share_basic5",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Employee share Basic(5%)"
+  },
+  {
+   "fieldname": "association_contribution100",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Association Contribution(100%)"
+  },
+  {
+   "fieldname": "total_deposit",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Total Deposit"
+  },
+  {
+   "fieldname": "net_amount",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Net Amount"
+  },
+  {
+   "fieldname": "basic_salary",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Basic salary"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-04-23 14:27:06.332750",
+ "modified_by": "Administrator",
+ "module": "Provident Fund Calculator",
+ "name": "Monthly PF",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

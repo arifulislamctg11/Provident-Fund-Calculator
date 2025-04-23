@@ -248,3 +248,9 @@ override_whitelisted_methods = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
+
+fixtures = [
+    {"dt": "DocType", "filters": [["name", "in", ["Monthly PF", "Monthly PF Table"]]]},
+    {"dt": "Custom Field", "filters": [["dt", "in", ["Monthly PF", "Monthly PF Table"]]]},
+    "Property Setter"
+]
