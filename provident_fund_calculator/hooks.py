@@ -20,6 +20,11 @@ app_license = "mit"
 # 		"has_permission": "provident_fund_calculator.api.permission.has_app_permission"
 # 	}
 # ]
+# In hooks.py
+has_permission = {
+    "DoctypeName": "provident_fund_calculator.api.permission.has_app_permission"
+}
+
 
 # Includes in <head>
 # ------------------
@@ -148,23 +153,24 @@ app_license = "mit"
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"provident_fund_calculator.tasks.all"
-# 	],
-# 	"daily": [
-# 		"provident_fund_calculator.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"provident_fund_calculator.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"provident_fund_calculator.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"provident_fund_calculator.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+	"all": [
+		"provident_fund_calculator.tasks.all"
+	],
+	"daily": [
+		"provident_fund_calculator.tasks.daily"
+	],
+	"hourly": [
+		"provident_fund_calculator.tasks.hourly"
+	],
+	"weekly": [
+		"provident_fund_calculator.tasks.weekly"
+	],
+	"monthly": [
+		"provident_fund_calculator.tasks.monthly"
+	],
+}
+
 
 # Testing
 # -------
@@ -174,9 +180,9 @@ app_license = "mit"
 # Overriding Methods
 # ------------------------------
 #
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "provident_fund_calculator.event.get_events"
-# }
+override_whitelisted_methods = {
+	"frappe.desk.doctype.event.event.get_events": "provident_fund_calculator.event.get_events"
+}
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
