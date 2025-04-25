@@ -174,15 +174,18 @@ scheduler_events = {
 
 # Testing
 # -------
+patches = [
+    "provident_fund_calculator.patches.v1_0.reset_report_permissions"
+]
 
 # before_tests = "provident_fund_calculator.install.before_tests"
 
 # Overriding Methods
 # ------------------------------
 #
-override_whitelisted_methods = {
-	"frappe.desk.doctype.event.event.get_events": "provident_fund_calculator.event.get_events"
-}
+# override_whitelisted_methods = {
+# 	"frappe.desk.doctype.event.event.get_events": "provident_fund_calculator.event.get_events"
+# }
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,

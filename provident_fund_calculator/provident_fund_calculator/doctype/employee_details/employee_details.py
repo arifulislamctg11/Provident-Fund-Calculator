@@ -1,9 +1,5 @@
-# Copyright (c) 2025, mangai and contributors
-# For license information, please see license.txt
-
-# import frappe
-from frappe.model.document import Document
-
+import frappe
+from frappe.model.document import Document  # Import the Document class
 
 class EmployeeDetails(Document):
-	pass
+    pass
