@@ -17,53 +17,68 @@ function calculate_amount(cdt, cdn) {
 
 	let total = emp_share + assoc_contribution;
 
-	console.log("💡 Total Deposit:", total);
+	console.log(" Total Deposit:", total);
 
 	frappe.model.set_value(cdt, cdn, 'total_deposit', total);
 	frappe.model.set_value(cdt, cdn, 'net_amount', total);
 }
 
-// Basic salary
+// employee share basic 50%
 frappe.ui.form.on('Monthly PF', {
-	net_amount: function(frm, cdt, cdn) {
-		let row = locals[cdt][cdn];
-		let net_amount = parseFloat(row.net_amount) || 0;
-		let basic_salary = net_amount * 10;
-		frappe.model.set_value(cdt, cdn, 'basic_salary', basic_salary);
-	}
-});
-
-
-frappe.ui.form.on('Employee Details', {       // ← your parent doctype
-    onload: function(frm) {
-        // initial compute
-        compute_total_deposit(frm);
+    basic_salary: function(frm, cdt, cdn) {
+        let row = locals[cdt][cdn];
+        if (row.basic_salary) {
+            frappe.model.set_value(cdt, cdn, 'employee_share_basic5', row.basic_salary * 0.5);
+        }
     }
 });
-
-frappe.ui.form.on('Monthly PF', { // ← the DocType of your child rows
-    deposit_amount: function(frm, cdt, cdn) {
-        // when an individual deposit changes
-        compute_total_deposit(frm);
-    },
-    items_add: function(frm) {
-        compute_total_deposit(frm);
-    },
-    items_remove: function(frm) {
-        compute_total_deposit(frm);
+// association share
+frappe.ui.form.on('Employee Details', {           
+    validate: function(frm) {
+      calculate_contribution(frm);  
     }
-});
-
-// helper
-function compute_total_deposit(frm) {
-    let total = 0.0;
-    // iterate rows in the child table field (change 'items' to your fieldname)
-    (frm.doc.monthly_pf_percent || []).forEach(row => {
-        // change 'deposit_amount' to your fieldname in the child table
-        total += flt(row.net_amount, 2);
-    });
-    // write back to the parent
-    frm.set_value('total_balance', total);
-    // optionally trigger refresh
-    frm.refresh_field('total_balance');
-}
+  });
+  
+  frappe.ui.form.on('Monthly PF', {                  
+    basic_salary: function(frm, cdt, cdn) {
+      calculate_contribution(frm, cdt, cdn);
+    },
+    year: function(frm, cdt, cdn) {
+      calculate_contribution(frm, cdt, cdn);
+    }
+  });
+  
+  function calculate_contribution(frm, cdt, cdn) {
+    if (!cdt) {
+      frm.doc.monthly_pf_percent.forEach(row => {
+        calculate_contribution(frm, row.doctype, row.name);
+      });
+      return;
+    }
+  
+    const row = locals[cdt][cdn];
+    if (!frm.doc.date_of_confirmation || !row.year || !row.basic_salary) return;
+  
+    const confirmation_year = frappe.datetime
+      .str_to_obj(frm.doc.date_of_confirmation)
+      .getFullYear();
+  
+    const row_year = parseInt(row.year, 10);
+    const years_of_service = Math.max(0, row_year - confirmation_year);   
+    const five_pct_basic = row.basic_salary * 0.05;
+    let contribution = 0;
+  
+    console.log({ confirmation_year, row_year, years_of_service });
+  
+    if (years_of_service < 5) contribution = 0;
+    else if (years_of_service < 7) contribution = five_pct_basic * 0.5;
+    else if (years_of_service < 9) contribution = five_pct_basic * 0.75;
+    else contribution = five_pct_basic * 1.0;
+  
+    console.log('Computed contr for', row.name, '=', contribution);
+  
+    frappe.model.set_value(cdt, cdn, 'association_contribution100', contribution);
+  }
+   
+  
+    
