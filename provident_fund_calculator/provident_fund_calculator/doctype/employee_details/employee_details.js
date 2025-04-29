@@ -25,13 +25,14 @@ function calculate_amount(cdt, cdn) {
 
 // employee share basic 50%
 frappe.ui.form.on('Monthly PF', {
-    basic_salary: function(frm, cdt, cdn) {
-        let row = locals[cdt][cdn];
-        if (row.basic_salary) {
-            frappe.model.set_value(cdt, cdn, 'employee_share_basic5', row.basic_salary * 0.5);
-        }
-    }
+  basic_salary: function(frm, cdt, cdn) {
+      let row = locals[cdt][cdn];
+      if (row.basic_salary) {
+          frappe.model.set_value(cdt, cdn, 'employee_share_basic5', row.basic_salary * 0.05);
+      }
+  }
 });
+
 // association share
 frappe.ui.form.on('Employee Details', {           
     validate: function(frm) {
@@ -79,6 +80,20 @@ frappe.ui.form.on('Employee Details', {
   
     frappe.model.set_value(cdt, cdn, 'association_contribution100', contribution);
   }
+  // duplicate entry for month & year
+  frappe.ui.form.on('Employee Details', {
+    validate: function(frm) {
+        const seen = new Set();
+        for (let row of frm.doc.monthly_pf_percent || []) {
+            const key = `${row.month}-${row.year}`;
+            if (seen.has(key)) {
+                frappe.throw(`Duplicate entry found for ${row.month} ${row.year}`);
+            }
+            seen.add(key);
+        }
+    }
+});
+
    
   
     
