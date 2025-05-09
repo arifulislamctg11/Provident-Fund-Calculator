@@ -10,26 +10,32 @@ def get_columns():
         {"label": "Employee", "fieldname": "parent", "fieldtype": "Link", "options": "Employee Details", "width": 130},
         {"label": "Month", "fieldname": "month", "fieldtype": "Data", "width": 100},
         {"label": "Year", "fieldname": "year", "fieldtype": "Int", "width": 80},
+        {"label": "Basic Salary", "fieldname": "basic_salary", "fieldtype": "Currency", "width": 120},
         {"label": "Employee Share", "fieldname": "employee_share_basic5", "fieldtype": "Currency", "width": 120},
         {"label": "Association Contribution", "fieldname": "association_contribution100", "fieldtype": "Currency", "width": 120},
         {"label": "Total Deposit", "fieldname": "total_deposit", "fieldtype": "Currency", "width": 100},
         {"label": "Net Amount", "fieldname": "net_amount", "fieldtype": "Currency", "width": 100},
-        {"label": "Basic Salary", "fieldname": "basic_salary", "fieldtype": "Currency", "width": 120},
     ]
 
 def get_data(filters):
-    conditions = ""
-    if filters and filters.get("month"):
-        conditions += f" AND mpf.month = '{filters['month']}'"
-    if filters and filters.get("year"):
-        conditions += f" AND mpf.year = {filters['year']}"
+    def safe_float(val):
+        try:
+            return float(val)
+        except (ValueError, TypeError):
+            return 0.0
 
-    return frappe.db.sql(f"""
+    conditions = ""
+    if filters:
+        if filters.get("employee_id"):
+            conditions += f" AND ed.employee_id = '{filters['employee_id']}'"
+        if filters.get("employee"):
+            conditions += f" AND ed.first_name = '{filters['employee']}'"
+
+    data = frappe.db.sql(f"""
         SELECT
             ed.name AS parent,
             mpf.month,
             mpf.year,
-            mpf.provident_fund_percent,
             mpf.employee_share_basic5,
             mpf.association_contribution100,
             mpf.total_deposit,
@@ -43,6 +49,29 @@ def get_data(filters):
             mpf.parenttype = 'Employee Details'
             {conditions}
         ORDER BY
+            mpf.year ASC,
+            FIELD(mpf.month, 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'),
             ed.name
     """, as_dict=True)
+
+    # Totals
+    total_employee_share = sum(safe_float(row["employee_share_basic5"]) for row in data)
+    total_association = sum(safe_float(row["association_contribution100"]) for row in data)
+    total_deposit = sum(safe_float(row["total_deposit"]) for row in data)
+    total_net_amount = sum(safe_float(row["net_amount"]) for row in data)
+    total_basic_salary = sum(safe_float(row["basic_salary"]) for row in data)
+
+    # Append total row
+    data.append({
+        "parent": "Total",
+        "month": "",
+        "year": "",
+        "basic_salary": total_basic_salary,
+        "employee_share_basic5": total_employee_share,
+        "association_contribution100": total_association,
+        "total_deposit": total_deposit,
+        "net_amount": total_net_amount,
+    })
+
+    return data
 
