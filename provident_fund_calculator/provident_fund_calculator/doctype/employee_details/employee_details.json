@@ -16,6 +16,7 @@
   "date_of_confirmation",
   "designation",
   "column_break_ytff",
+  "resignation_date",
   "monthly_pf_percent",
   "amended_from"
  ],
@@ -87,14 +88,19 @@
   {
    "fieldname": "column_break_ytff",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "resignation_date",
+   "fieldtype": "Date",
+   "label": "Resignation Date"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-04-28 11:44:42.148494",
- "modified_by": "mangai23ravi@gmail.com",
+ "modified": "2025-05-12 15:24:41.530647",
+ "modified_by": "Administrator",
  "module": "Provident Fund Calculator",
  "name": "Employee Details",
  "naming_rule": "By fieldname",

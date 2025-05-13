@@ -1,4 +1,5 @@
 frappe.query_reports["Employee PF Report"] = {
+    add_total_row: 0,
     onload: function (report) {
         frappe.db.get_list('Employee Details', {
             fields: ['first_name', 'employee_id'],
@@ -28,5 +29,5 @@ frappe.query_reports["Employee PF Report"] = {
             fieldtype: "Select",
             options: [] 
         }
-    ]
+    ]    
 };

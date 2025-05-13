@@ -1,5 +1,5 @@
 {
- "add_total_row": 1,
+ "add_total_row": 0,
  "add_translate_data": 0,
  "columns": [
   {
@@ -59,7 +59,7 @@
  "idx": 0,
  "is_standard": "Yes",
  "letterhead": null,
- "modified": "2025-04-28 14:10:29.217050",
+ "modified": "2025-05-12 12:10:46.078488",
  "modified_by": "Administrator",
  "module": "Provident Fund Calculator",
  "name": "Employee PF Report",

@@ -10,12 +10,16 @@ class EmployeeDetails(Document):
         self.update_future_basic_salary()
         self.update_all_months()
 
+    def get_end_date(self):
+        # Return resignation date if exists, otherwise return today's date
+        return getdate(self.resignation_date) if self.resignation_date else date.today()
+
     def fill_monthly_pf_percent(self):
         if not self.date_of_confirmation:
             return
 
         start_date = getdate(self.date_of_confirmation)
-        end_date = date.today()
+        end_date = self.get_end_date()  # Use the new method here
 
         current = date(start_date.year, start_date.month, 1)
         last = date(end_date.year, end_date.month, 1)
@@ -49,13 +53,12 @@ class EmployeeDetails(Document):
         self.update_all_months()
         self.update_future_basic_salary()
 
-
     def generate_monthly_pf_rows(self):
         if not self.date_of_confirmation:
             frappe.throw("Please set the Date of Confirmation.")
 
         start_date = getdate(self.date_of_confirmation)
-        end_date = getdate(frappe.utils.today())
+        end_date = self.get_end_date()  # Use the new method here
 
         month_names = [
             "January", "February", "March", "April", "May", "June",
@@ -81,7 +84,6 @@ class EmployeeDetails(Document):
         self.monthly_pf_percent = sorted(
             self.monthly_pf_percent, key=lambda x: (x.year, month_names.index(x.month))
         )
-
                             
     def update_all_months(self):
         if not self.date_of_confirmation:
@@ -183,3 +185,4 @@ class EmployeeDetails(Document):
             #     f"All future salaries updated to match the highest salary (₹{correct_salary})",
             #     alert=True
             # )
+
