@@ -1,0 +1,71 @@
+{
+ "add_total_row": 0,
+ "add_translate_data": 0,
+ "columns": [
+  {
+   "fieldname": "first_name",
+   "fieldtype": "Data",
+   "label": "Employee Name",
+   "width": 0
+  },
+  {
+   "fieldname": "month",
+   "fieldtype": "Select",
+   "label": "Month",
+   "width": 0
+  },
+  {
+   "fieldname": "year",
+   "fieldtype": "Int",
+   "label": "Year",
+   "width": 0
+  },
+  {
+   "fieldname": "employee_share_basic5",
+   "fieldtype": "Float",
+   "label": "Employee share Basic(5%)",
+   "width": 0
+  },
+  {
+   "fieldname": "total_deposit",
+   "fieldtype": "Data",
+   "label": "Total Deposit",
+   "width": 0
+  },
+  {
+   "fieldname": "net_amount",
+   "fieldtype": "Data",
+   "label": "Net Amount",
+   "width": 0
+  },
+  {
+   "fieldname": "basic_salary",
+   "fieldtype": "Data",
+   "label": "Basic Salary",
+   "width": 0
+  }
+ ],
+ "creation": "2025-05-21 12:06:06.518459",
+ "disabled": 0,
+ "docstatus": 0,
+ "doctype": "Report",
+ "filters": [],
+ "idx": 0,
+ "is_standard": "Yes",
+ "letterhead": null,
+ "modified": "2025-05-21 12:06:06.518459",
+ "modified_by": "Administrator",
+ "module": "Provident Fund Calculator",
+ "name": "Employee PF Report without AC",
+ "owner": "Administrator",
+ "prepared_report": 0,
+ "ref_doctype": "Employee Details",
+ "report_name": "Employee PF Report without AC",
+ "report_type": "Script Report",
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ],
+ "timeout": 0
+}
