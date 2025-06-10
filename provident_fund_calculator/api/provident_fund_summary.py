@@ -8,5 +8,5 @@ def get_pf_report_data(employee_id=None):
         "employee_name": doc.employee_name,
         "employee_id": doc.employee_id,
         "designation": doc.designation,
-        "data": doc.monthly_pf # replace with your child table fieldname
+        "data": doc.monthly_pf 
     }
