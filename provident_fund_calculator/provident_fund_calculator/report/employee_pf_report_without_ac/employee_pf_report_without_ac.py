@@ -5,6 +5,7 @@ def execute(filters=None):
     data = get_data(filters)
     return columns, data
 
+
 def get_columns():
     return [
         {"label": "Employee", "fieldname": "parent", "fieldtype": "Link", "options": "Employee Details", "width": 130},

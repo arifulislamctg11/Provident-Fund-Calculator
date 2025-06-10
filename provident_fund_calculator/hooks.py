@@ -254,7 +254,9 @@ patches = [
 
 
 fixtures = [
-    {"dt": "DocType", "filters": [["name", "in", ["Monthly PF", "Monthly PF Table"]]]},
-    {"dt": "Custom Field", "filters": [["dt", "in", ["Monthly PF", "Monthly PF Table"]]]},
-    "Property Setter"
+    {"doctype": "DocType", "filters": [["name", "in", ["Monthly PF", "Monthly PF Table"]]]},
+    {"doctype": "Custom Field", "filters": [["dt", "in", ["Monthly PF", "Monthly PF Table"]]]},
+    "Property Setter",
+    # {"doctype": "Report", "filters": [["name", "in", ["Provident Fund Summary"]]]}
 ]
+
