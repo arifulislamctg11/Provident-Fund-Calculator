@@ -1,106 +1,152 @@
-// Total deposit and net amount
-frappe.ui.form.on('Monthly PF', {
-	employee_share_basic5: function(frm, cdt, cdn) {
-		calculate_amount(cdt, cdn);
-	},
+const MONTH_ORDER = {
+  january: 1,
+  february: 2,
+  march: 3,
+  april: 4,
+  may: 5,
+  june: 6,
+  july: 7,
+  august: 8,
+  september: 9,
+  october: 10,
+  november: 11,
+  december: 12,
+};
+const toFloat = (v) => (isNaN(parseFloat(v)) ? 0 : parseFloat(v));
 
-	association_contribution100: function(frm, cdt, cdn) {
-		calculate_amount(cdt, cdn);
-	}
-});
-
-function calculate_amount(cdt, cdn) {
-	let row = locals[cdt][cdn];
-
-	let emp_share = parseFloat(row.employee_share_basic5) || 0;
-	let assoc_contribution = parseFloat(row.association_contribution100) || 0;
-
-	let total = emp_share + assoc_contribution;
-
-	console.log(" Total Deposit:", total);
-
-	frappe.model.set_value(cdt, cdn, 'total_deposit', total);
-	frappe.model.set_value(cdt, cdn, 'net_amount', total);
-}
-
-// employee share basic 5%
-frappe.ui.form.on('Monthly PF', {
-  basic_salary: function(frm, cdt, cdn) {
-      let row = locals[cdt][cdn];
-      if (row.basic_salary) {
-          frappe.model.set_value(cdt, cdn, 'employee_share_basic5', row.basic_salary * 0.05);
-      }
-  }
-});
-
-// association share
-frappe.ui.form.on('Employee Details', {
-  validate: function(frm) {
-      calculate_all_contributions(frm);
-  }
-});
-
-frappe.ui.form.on('Monthly PF', {
-  basic_salary: function(frm, cdt, cdn) {
-      calculate_contribution(frm, cdt, cdn);
+frappe.ui.form.on("Employee Details", {
+  refresh(frm) {
+    recompute_all(frm);
   },
-  year: function(frm, cdt, cdn) {
-      calculate_contribution(frm, cdt, cdn);
-  }
+  validate(frm) {
+    recompute_all(frm);
+  },
+  date_of_confirmation(frm) {
+    recompute_all(frm);
+  },
 });
 
-function calculate_all_contributions(frm) {
-  (frm.doc.monthly_pf_percent || []).forEach(row => {
-      calculate_contribution(frm, row.doctype, row.name);
-  });
-}
-function calculate_contribution(frm, cdt, cdn) {
-  const row = locals[cdt][cdn];
+frappe.ui.form.on("Monthly PF", {
+  // If you enter basic salary, auto-fill 5%
+  basic_salary(frm, cdt, cdn) {
+    const row = locals[cdt][cdn];
+    const basic = toFloat(row.basic_salary);
+    frappe.model.set_value(cdt, cdn, "employee_share_basic5", basic * 0.05);
+    recompute_all(frm);
+  },
 
-  if (!frm.doc.date_of_confirmation || !row.year || !row.basic_salary) return;
+  employee_share_basic5(frm) {
+    recompute_all(frm);
+  },
 
-  const confirmation_year = frappe.datetime.str_to_obj(frm.doc.date_of_confirmation).getFullYear();
-  const row_year = parseInt(row.year, 10);
-  const years_of_service = Math.max(0, row_year - confirmation_year);
-  const five_pct_basic = row.basic_salary * 0.05;
+  year(frm) {
+    recompute_all(frm);
+  },
+});
 
-  let contribution = 0;
-  if (years_of_service < 5) {
-      contribution = 0.0;  
-  } else if (years_of_service < 7) {
-      contribution = five_pct_basic * 0.5;
-  } else if (years_of_service < 9) {
-      contribution = five_pct_basic * 0.75;
-  } else {
-      contribution = five_pct_basic;
-  }
-
-  frappe.model.set_value(cdt, cdn, 'association_contribution100', contribution).then(() => {
-      frm.fields_dict.monthly_pf_percent.grid.refresh();
-  });
+// -------------------- Core logic --------------------
+function recompute_all(frm) {
+  update_current_year_assoc(frm); // first, update association share everywhere
+  compute_row_totals(frm); // then recompute totals using updated assoc
+  compute_yearly_totals(frm); // yearly summary last
+  frm.refresh_field("monthly_pf_percent");
 }
 
-// duplicate entry for month & year
-  frappe.ui.form.on('Employee Details', {
-    validate: function(frm) {
-        const seen = new Set();
-        for (let row of frm.doc.monthly_pf_percent || []) {
-            const key = `${row.month}-${row.year}`;
-            if (seen.has(key)) {
-                frappe.throw(`Duplicate entry found for ${row.month} ${row.year}`);
-            }
-            seen.add(key);
-        }
+// Per-row totals: total_deposit = employee_share_basic5 + association_contribution(whatever your field is)
+function compute_row_totals(frm) {
+  const rows = frm.doc.monthly_pf_percent || [];
+  rows.forEach((row) => {
+    // Support either fieldname the site may be using
+    const assoc = row.hasOwnProperty("association_contribution100")
+      ? toFloat(row.association_contribution100)
+      : toFloat(row.association_contribution);
+
+    const emp5 = toFloat(row.employee_share_basic5);
+    const total = emp5 + assoc;
+
+    row.total_deposit = total;
+    row.net_amount = total;
+  });
+}
+
+// Yearly total: sum of employee_share_basic5 Jan→Dec and put into December row (or last row of year)
+function compute_yearly_totals(frm) {
+  const rows = frm.doc.monthly_pf_percent || [];
+  if (!rows.length) return;
+
+  // group rows by year
+  const byYear = {};
+  rows.forEach((r) => {
+    const y = r.year; // No need to parse, already a number
+    if (!y) return;
+    byYear[y] ||= { sum: 0, rows: [] };
+    byYear[y].sum += toFloat(r.employee_share_basic5);
+    byYear[y].rows.push(r);
+  });
+
+  // reset all yearly_total first
+  rows.forEach((r) => (r.yearly_total = 0));
+
+  // write total to December row (or last-in-year by month order)
+  Object.keys(byYear).forEach((y) => {
+    const group = byYear[y];
+    // find December (case-insensitive)
+    let target = group.rows.find(
+      (r) => String(r.month || "").toLowerCase() === "december"
+    );
+
+    if (!target) {
+      // pick the row with the greatest month order as a fallback
+      target = group.rows
+        .slice()
+        .sort(
+          (a, b) =>
+            (MONTH_ORDER[String(a.month || "").toLowerCase()] || 0) -
+            (MONTH_ORDER[String(b.month || "").toLowerCase()] || 0)
+        )
+        .pop();
     }
-});
 
+    if (target) target.yearly_total = Number(group.sum.toFixed(2));
+  });
+}
 
+// assco current
 
+function update_current_year_assoc(frm) {
+  const rows = frm.doc.monthly_pf_percent || [];
+  if (!rows.length) return;
 
+  // --- Step 1: find latest ratio from filled rows ---
+  let latestRatio = null;
+  const sorted = rows.slice().sort((a, b) => {
+    const ya = toFloat(a.year),
+      yb = toFloat(b.year);
+    if (ya !== yb) return ya - yb;
+    const ma = MONTH_ORDER[String(a.month || "").toLowerCase()] || 0;
+    const mb = MONTH_ORDER[String(b.month || "").toLowerCase()] || 0;
+    return ma - mb;
+  });
 
+  for (let i = sorted.length - 1; i >= 0; i--) {
+    const r = sorted[i];
+    const emp5 = toFloat(r.employee_share_basic5);
+    const assoc = toFloat(r.association_contribution100);
+    if (emp5 > 0 && assoc > 0) {
+      latestRatio = assoc / emp5;
+      break;
+    }
+  }
 
+  if (latestRatio == null) return;
 
+  // --- Step 2: apply ratio to ALL rows (direct assignment) ---
+  rows.forEach((r) => {
+    const emp5 = toFloat(r.employee_share_basic5);
+    r.association_contribution100 = Number((emp5 * latestRatio).toFixed(2));
+    r.total_deposit = emp5 + r.association_contribution100;
+    r.net_amount = r.total_deposit;
+  });
 
-
-  
-    
+  frm.refresh_field("monthly_pf_percent");
+}
