@@ -33,7 +33,6 @@ class EmployeeDetails(Document):
         start_date = getdate(self.date_of_confirmation)
         end_date = self.get_end_date()
         
-        
         existing_keys = {
             (row.month, int(row.year))
             for row in self.get("monthly_pf_percent", [])
@@ -60,16 +59,17 @@ class EmployeeDetails(Document):
 
             current = add_months(current, 1)
         
-        
+        # Sort by year and month
         if hasattr(self, "monthly_pf_percent"):
-            self.monthly_pf_percent.sort(key=lambda x: (x.year, self.MONTH_ORDER.get(x.month, 0)))
+            self.monthly_pf_percent.sort(
+                key=lambda x: (x.year, self.MONTH_ORDER.get(x.month, 0))
+            )
     
     def update_all_months(self):
         """Update all PF calculations for each month"""
         if not hasattr(self, "monthly_pf_percent") or not self.monthly_pf_percent:
             return
 
-        confirmation_date = getdate(self.date_of_confirmation)
         latest_salary = 0
 
         for row in self.monthly_pf_percent:
@@ -79,31 +79,22 @@ class EmployeeDetails(Document):
             elif current_salary < latest_salary:
                 row.basic_salary = latest_salary
 
-            # Calculate employee contribution (5% of basic salary)
+            # Employee contribution (5% of basic salary)
             row.employee_share_basic5 = round(latest_salary * 0.05, 2)
-            
-            # Calculate association contribution based on tenure
-            row_date = date(int(row.year), self.MONTH_ORDER.get(row.month, 1), 1)
-            tenure_years = (row_date - confirmation_date).days / 365.25  
 
-            if tenure_years < 5:
-                row.association_contribution100 = 0
-            elif tenure_years < 7:
-                row.association_contribution100 = round(row.employee_share_basic5 * 0.5, 2)
-            elif tenure_years < 9:
-                row.association_contribution100 = round(row.employee_share_basic5 * 0.75, 2)
-            else:
-                row.association_contribution100 = row.employee_share_basic5
+            # Association contribution → SAME as employee share
+            row.association_contribution100 = row.employee_share_basic5
 
-            # Calculate totals
-            row.total_deposit = round(row.employee_share_basic5 + row.association_contribution100, 2)
+            # Totals
+            row.total_deposit = round(
+                row.employee_share_basic5 + row.association_contribution100, 2
+            )
             row.net_amount = row.total_deposit
     
     def update_future_basic_salary(self):
         """Ensure basic salary never decreases in subsequent months"""
         if not hasattr(self, "monthly_pf_percent") or not self.monthly_pf_percent:
             return
-
         
         max_salary = 0
         last_increase_index = 0
@@ -114,13 +105,18 @@ class EmployeeDetails(Document):
                 max_salary = current_salary
                 last_increase_index = i
         
-        
         for row in self.monthly_pf_percent[last_increase_index+1:]:
             if flt(row.basic_salary) < max_salary:
                 row.basic_salary = max_salary
 
     def validate(self):
-        """Validate the document"""
+        """Auto-generate employee name and run calculations"""
+        # Auto-generate employee_name from first and last name
+        first = self.first_name or ""
+        last = self.last_name or ""
+        self.custom_employee_name = f"{first} {last}".strip()
+
+        # Run PF logic
         self.validate_date_of_confirmation()
         self.generate_monthly_pf_rows()
         self.update_all_months()

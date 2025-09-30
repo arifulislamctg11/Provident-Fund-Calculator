@@ -150,3 +150,5 @@ function update_current_year_assoc(frm) {
 
   frm.refresh_field("monthly_pf_percent");
 }
+
+
